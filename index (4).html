@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MalikBuild - HTML to APK, EXE, PWA Converter</title>
+    <meta name="description" content="MalikBuild - Convert HTML to APK, EXE, PWA, ZIP. Free online HTML converter by Malik. Supports Windows, Android, iOS, Mac.">
+    <meta name="keywords" content="MalikBuild, HTML to APK, HTML to EXE, HTML converter, Malik, PWA generator, web to app">
+    <meta name="author" content="Malik">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .code-font { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-gradient { background-size: 200% 200%; animation: gradient-shift 3s ease infinite; }
+
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        .float { animation: float 3s ease-in-out infinite; }
+
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+
+        .terminal-line { opacity: 0; animation: fade-in 0.3s forwards; }
+        @keyframes fade-in { to { opacity: 1; } }
+
+        .tab-active { background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5); color: #60a5fa; }
+        .tab-inactive { background: rgba(30, 41, 59, 0.5); border-color: rgba(51, 65, 85, 0.5); color: #94a3b8; }
+        .tab-inactive:hover { background: rgba(51, 65, 85, 0.5); color: #e2e8f0; }
+
+        .platform-active { background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.5); color: #4ade80; }
+        .platform-inactive { background: rgba(30, 41, 59, 0.5); border-color: rgba(51, 65, 85, 0.5); color: #94a3b8; }
+
+        .malik-signature {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(59, 130, 246, 0.2));
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .noise-bg { position: relative; }
+        .noise-bg::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(168, 85, 247, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.8); }
+        }
+        .malik-glow { animation: pulse-glow 2s infinite; }
+
+        .lang-btn { transition: all 0.3s; }
+        .lang-btn.active { background: rgba(59, 130, 246, 0.3); color: #60a5fa; border-color: rgba(59, 130, 246, 0.5); }
+        .lang-btn:hover:not(.active) { background: rgba(51, 65, 85, 0.5); }
+    </style>
+<base target="_blank">
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen noise-bg overflow-x-hidden">
+
+    <!-- Background Effects -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/3 -left-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-40 right-1/4 w-96 h-96 bg-green-600/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="relative z-10 border-b border-slate-800/50 glass sticky top-0">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg relative overflow-hidden malik-glow">
+                    <span class="text-white font-bold text-lg relative z-10">M</span>
+                    <div class="absolute inset-0 bg-gradient-to-br from-transparent to-black/20"></div>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl text-white tracking-tight">MalikBuild</h1>
+                    <p class="text-xs text-slate-400" data-i18n="subtitle">HTML to App Converter</p>
+                </div>
+            </div>
+
+            <!-- Language Selector -->
+            <div class="flex items-center gap-2">
+                <button onclick="setLanguage('tr')" class="lang-btn active px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700" data-lang="tr">🇹🇷 TR</button>
+                <button onclick="setLanguage('en')" class="lang-btn px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700" data-lang="en">🇬🇧 EN</button>
+                <button onclick="setLanguage('ru')" class="lang-btn px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700" data-lang="ru">🇷🇺 RU</button>
+                <button onclick="setLanguage('tk')" class="lang-btn px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700" data-lang="tk">🇹🇲 TK</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Malik Signature Banner -->
+    <div class="relative z-10 malik-signature py-3 px-6 text-center">
+        <div class="max-w-7xl mx-auto flex items-center justify-center gap-3">
+            <i class="fa-solid fa-code text-purple-400"></i>
+            <span class="text-sm font-medium text-purple-200">
+                <span data-i18n="createdBy">Created by</span> 
+                <span class="font-bold text-white text-lg">Malik</span> 
+                <span data-i18n="signatureText">| Build APK, EXE, PWA Online</span>
+            </span>
+            <i class="fa-solid fa-rocket text-blue-400"></i>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative z-10 py-12 text-center px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700/50 mb-6 text-sm text-slate-300">
+                <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i>
+                <span data-i18n="heroBadge">Convert HTML to real applications</span>
+            </div>
+            <h2 class="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+                <span data-i18n="heroTitle1">HTML to</span><br>
+                <span class="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent animate-gradient" data-i18n="heroTitle2">
+                    APK, EXE, PWA
+                </span>
+            </h2>
+            <p class="text-slate-400 text-lg max-w-2xl mx-auto mb-8" data-i18n="heroDesc">
+                Convert your HTML project to downloadable files. For Windows, Android, iOS, Mac.
+            </p>
+
+            <!-- Platform Icons -->
+            <div class="flex justify-center gap-4 mb-8">
+                <div class="glass rounded-xl px-4 py-2 flex items-center gap-2 border border-slate-700/50">
+                    <i class="fa-brands fa-windows text-blue-400 text-xl"></i>
+                    <span class="text-sm text-slate-300">Windows</span>
+                </div>
+                <div class="glass rounded-xl px-4 py-2 flex items-center gap-2 border border-slate-700/50">
+                    <i class="fa-brands fa-android text-green-400 text-xl"></i>
+                    <span class="text-sm text-slate-300">Android</span>
+                </div>
+                <div class="glass rounded-xl px-4 py-2 flex items-center gap-2 border border-slate-700/50">
+                    <i class="fa-brands fa-apple text-white text-xl"></i>
+                    <span class="text-sm text-slate-300">iOS / Mac</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Converter -->
+    <main class="relative z-10 max-w-7xl mx-auto px-6 pb-20">
+        <div class="grid lg:grid-cols-2 gap-8">
+
+            <!-- Left: Editor -->
+            <div class="space-y-6">
+                <!-- Platform Selector -->
+                <div class="glass rounded-2xl p-3">
+                    <div class="text-xs text-slate-500 mb-2 uppercase tracking-wider font-semibold" data-i18n="selectPlatform">Select Platform</div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setPlatform('windows')" id="plat-windows" class="platform-active py-3 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300 border">
+                            <i class="fa-brands fa-windows text-xl"></i>
+                            <span class="text-xs font-bold">Windows</span>
+                        </button>
+                        <button onclick="setPlatform('android')" id="plat-android" class="platform-inactive py-3 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300 border">
+                            <i class="fa-brands fa-android text-xl"></i>
+                            <span class="text-xs font-bold">Android</span>
+                        </button>
+                        <button onclick="setPlatform('apple')" id="plat-apple" class="platform-inactive py-3 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300 border">
+                            <i class="fa-brands fa-apple text-xl"></i>
+                            <span class="text-xs font-bold">iOS / Mac</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Format Selector -->
+                <div class="glass rounded-2xl p-2 grid grid-cols-4 gap-2">
+                    <button onclick="setFormat('exe')" id="tab-exe" class="tab-active py-3 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300 border">
+                        <i class="fa-solid fa-cogs text-lg"></i>
+                        <span class="text-[10px] font-bold">EXE</span>
+                    </button>
+                    <button onclick="setFormat('zip')" id="tab-zip" class="tab-inactive py-3 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300 border">
+                        <i class="fa-solid fa-file-zipper text-lg"></i>
+                        <span class="text-[10px] font-bold">ZIP</span>
+                    </button>
+                    <button onclick="setFormat('pwa')" id="tab-pwa" class="tab-inactive py-3 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300 border">
+                        <i class="fa-solid fa-globe text-lg"></i>
+                        <span class="text-[10px] font-bold">PWA</span>
+                    </button>
+                    <button onclick="setFormat('single')" id="tab-single" class="tab-inactive py-3 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300 border">
+                        <i class="fa-brands fa-html5 text-lg"></i>
+                        <span class="text-[10px] font-bold">HTML</span>
+                    </button>
+                </div>
+
+                <!-- Code Editor -->
+                <div class="glass rounded-2xl overflow-hidden border border-slate-700/50">
+                    <div class="bg-slate-900/80 px-4 py-3 flex items-center justify-between border-b border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <div class="flex gap-1.5">
+                                <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                            </div>
+                            <span class="text-sm text-slate-400 ml-2">index.html</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="loadDemo()" class="text-xs px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors">
+                                <i class="fa-solid fa-bolt mr-1"></i><span data-i18n="demo">Demo</span>
+                            </button>
+                            <button onclick="clearEditor()" class="text-xs px-3 py-1.5 rounded-md bg-slate-800 hover:bg-red-900/30 text-slate-300 hover:text-red-400 transition-colors">
+                                <i class="fa-solid fa-trash mr-1"></i><span data-i18n="clear">Clear</span>
+                            </button>
+                        </div>
+                    </div>
+                    <textarea 
+                        id="codeEditor" 
+                        class="w-full h-[350px] bg-[#0d1117] text-slate-300 code-font text-sm p-4 resize-none outline-none border-none leading-6"
+                        placeholder="<!DOCTYPE html>
+<html>
+<head>
+    <title>My App</title>
+</head>
+<body>
+    <h1>Hello World!</h1>
+</body>
+</html>"
+                        spellcheck="false"
+                    ></textarea>
+                </div>
+
+                <!-- App Settings -->
+                <div class="glass rounded-2xl p-6 border border-slate-700/50">
+                    <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-purple-400"></i>
+                        <span data-i18n="appSettings">App Settings</span>
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1.5" data-i18n="appName">App Name</label>
+                            <input type="text" id="appName" value="MalikApp" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1.5" data-i18n="version">Version</label>
+                            <input type="text" id="appVersion" value="1.0.0" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-xs text-slate-400 mb-1.5" data-i18n="description">Description</label>
+                            <input type="text" id="appDesc" value="Built with MalikBuild" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Preview & Build -->
+            <div class="space-y-6">
+                <!-- Live Preview -->
+                <div class="glass rounded-2xl overflow-hidden border border-slate-700/50">
+                    <div class="bg-slate-900/80 px-4 py-3 flex items-center justify-between border-b border-slate-800">
+                        <span class="text-sm text-slate-400 flex items-center gap-2">
+                            <i class="fa-solid fa-eye text-blue-400"></i>
+                            <span data-i18n="livePreview">Live Preview</span>
+                        </span>
+                        <div class="flex gap-1 bg-slate-800/50 rounded-lg p-0.5">
+                            <button onclick="setPreviewDevice('phone')" class="preview-device-btn p-1.5 rounded-md text-xs text-blue-400 bg-slate-700" data-device="phone">
+                                <i class="fa-solid fa-mobile-screen"></i>
+                            </button>
+                            <button onclick="setPreviewDevice('desktop')" class="preview-device-btn p-1.5 rounded-md text-xs text-slate-500 hover:text-slate-300" data-device="desktop">
+                                <i class="fa-solid fa-desktop"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-slate-100 p-4 flex justify-center" style="min-height: 300px;">
+                        <div id="previewWrapper" class="w-[280px] h-[500px] bg-white rounded-[2rem] shadow-2xl overflow-hidden border-8 border-slate-800 transition-all duration-500 relative">
+                            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-slate-800 rounded-b-2xl z-10"></div>
+                            <iframe id="previewFrame" class="w-full h-full border-none bg-white"></iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Build Section -->
+                <div class="glass rounded-2xl p-6 border border-slate-700/50 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-full blur-2xl"></div>
+
+                    <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-hammer text-orange-400"></i>
+                        <span data-i18n="buildTitle">Build & Download</span>
+                    </h3>
+
+                    <!-- Format Info -->
+                    <div id="formatInfo" class="mb-4 p-4 rounded-xl bg-slate-800/30 border border-slate-700/30">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i id="formatIcon" class="fa-solid fa-cogs text-2xl text-blue-400"></i>
+                            <div>
+                                <div id="formatTitle" class="font-bold text-white">Windows EXE</div>
+                                <div id="formatDesc" class="text-xs text-slate-400">Executable for Windows 7+</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info Boxes -->
+                    <div id="infoBox" class="hidden rounded-xl p-4 mb-4 border">
+                        <div class="flex items-start gap-3">
+                            <i id="infoIcon" class="text-lg mt-0.5"></i>
+                            <div>
+                                <div id="infoTitle" class="font-semibold text-sm mb-1"></div>
+                                <div id="infoText" class="text-xs leading-relaxed"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="buildIdle" class="space-y-4">
+                        <button onclick="startBuild()" class="w-full py-4 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 hover:from-purple-500 hover:via-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 group">
+                            <i class="fa-solid fa-rocket text-xl group-hover:animate-bounce"></i>
+                            <span id="buildBtnText">Build EXE & Download</span>
+                        </button>
+                        <p class="text-xs text-slate-500 text-center" data-i18n="freeFast">Free • Fast • Secure</p>
+                    </div>
+
+                    <!-- Building State -->
+                    <div id="buildProgress" class="hidden space-y-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-white" id="buildStatus">Preparing files...</span>
+                            <span class="text-sm text-blue-400 font-mono" id="buildPercent">0%</span>
+                        </div>
+                        <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="progressBar" class="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <div class="bg-slate-950 rounded-xl p-4 font-mono text-xs space-y-1 h-32 overflow-y-auto border border-slate-800" id="terminal"></div>
+                    </div>
+
+                    <!-- Success State -->
+                    <div id="buildSuccess" class="hidden text-center py-4">
+                        <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 relative">
+                            <i class="fa-solid fa-check text-3xl text-green-400"></i>
+                            <div class="absolute inset-0 rounded-full border-2 border-green-500/30 animate-ping"></div>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mb-2" data-i18n="ready">Ready!</h4>
+                        <p class="text-slate-400 text-sm mb-4" data-i18n="downloaded">Your file has been created and downloaded.</p>
+                        <button onclick="resetBuild()" class="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-all text-sm">
+                            <i class="fa-solid fa-rotate-right mr-2"></i><span data-i18n="newFile">New File</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Malik Footer Card -->
+                <div class="malik-signature rounded-2xl p-5 text-center">
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <i class="fa-solid fa-code text-purple-400"></i>
+                        <span class="font-bold text-white text-lg">Malik</span>
+                        <i class="fa-solid fa-rocket text-blue-400"></i>
+                    </div>
+                    <p class="text-xs text-purple-200/70 mb-3" data-i18n="malikFooter">HTML to App Converter | Free Online Tool</p>
+                    <div class="flex justify-center gap-3">
+                        <span class="px-3 py-1 rounded-full bg-slate-800/50 text-xs text-slate-400 border border-slate-700">malikbuild.com</span>
+                        <span class="px-3 py-1 rounded-full bg-slate-800/50 text-xs text-slate-400 border border-slate-700">v2.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEO / Share Section -->
+        <section class="mt-16 glass rounded-2xl p-8 border border-slate-700/50">
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-white mb-2">MalikBuild</h3>
+                <p class="text-slate-400" data-i18n="shareText">Share this tool with others</p>
+            </div>
+            <div class="flex flex-wrap justify-center gap-3">
+                <div class="px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700 text-sm text-slate-300 font-mono">malikbuild.com</div>
+                <div class="px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700 text-sm text-slate-300 font-mono">malikbuild.github.io</div>
+                <div class="px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700 text-sm text-slate-300 font-mono">html2app.malik.dev</div>
+            </div>
+            <div class="mt-6 grid md:grid-cols-4 gap-4 text-center">
+                <div class="p-4 rounded-xl bg-slate-800/30">
+                    <div class="text-2xl font-bold text-white mb-1">100%</div>
+                    <div class="text-xs text-slate-400" data-i18n="free">Free</div>
+                </div>
+                <div class="p-4 rounded-xl bg-slate-800/30">
+                    <div class="text-2xl font-bold text-white mb-1">4</div>
+                    <div class="text-xs text-slate-400" data-i18n="formats">Formats</div>
+                </div>
+                <div class="p-4 rounded-xl bg-slate-800/30">
+                    <div class="text-2xl font-bold text-white mb-1">4</div>
+                    <div class="text-xs text-slate-400" data-i18n="languages">Languages</div>
+                </div>
+                <div class="p-4 rounded-xl bg-slate-800/30">
+                    <div class="text-2xl font-bold text-white mb-1">3</div>
+                    <div class="text-xs text-slate-400" data-i18n="platforms">Platforms</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="relative z-10 border-t border-slate-800/50 glass mt-20">
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">M</span>
+                    </div>
+                    <div>
+                        <div class="font-bold text-white">MalikBuild</div>
+                        <div class="text-xs text-slate-500">by Malik</div>
+                    </div>
+                </div>
+                <div class="text-center md:text-right">
+                    <p class="text-slate-500 text-sm"> MalikBuild. All rights reserved.</p>
+                    <p class="text-xs text-slate-600 mt-1">HTML to APK, EXE, PWA Converter</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-500 flex items-center gap-3 z-50 border border-slate-700">
+        <i class="fa-solid fa-circle-check text-green-400 text-lg"></i>
+        <span id="toastMsg">Success</span>
+    </div>
+
+    <script>
+        // Translations
+        const i18n = {
+            tr: {
+                subtitle: "HTML'den Uygulama Olusturucu",
+                createdBy: "Olusturan:",
+                signatureText: "| APK, EXE, PWA Online Olustur",
+                heroBadge: "HTML'i gercek uygulamalara donusturun",
+                heroTitle1: "HTML'den",
+                heroTitle2: "APK, EXE, PWA",
+                heroDesc: "HTML projenizi indirilebilir dosyalara cevirin. Windows, Android, iOS, Mac icin.",
+                selectPlatform: "Platform Secin",
+                demo: "Demo",
+                clear: "Temizle",
+                appSettings: "Uygulama Ayarlari",
+                appName: "Uygulama Adi",
+                version: "Versiyon",
+                description: "Aciklama",
+                livePreview: "Canli Onizleme",
+                buildTitle: "Derle ve Indir",
+                buildBtn: { exe: "EXE Olustur & Indir", zip: "ZIP Olustur & Indir", pwa: "PWA Olustur & Indir", single: "HTML Olustur & Indir" },
+                freeFast: "Ucretsiz • Hizli • Guvenli",
+                ready: "Hazir!",
+                downloaded: "Dosyaniz olusturuldu ve indirildi.",
+                newFile: "Yeni Dosya",
+                malikFooter: "HTML'den Uygulama Donusturucu | Ucretsiz Online Arac",
+                shareText: "Bu araci baskalariyla paylasin",
+                free: "Ucretsiz",
+                formats: "Format",
+                languages: "Dil",
+                platforms: "Platform"
+            },
+            en: {
+                subtitle: "HTML to App Converter",
+                createdBy: "Created by:",
+                signatureText: "| Build APK, EXE, PWA Online",
+                heroBadge: "Convert HTML to real applications",
+                heroTitle1: "HTML to",
+                heroTitle2: "APK, EXE, PWA",
+                heroDesc: "Convert your HTML project to downloadable files. For Windows, Android, iOS, Mac.",
+                selectPlatform: "Select Platform",
+                demo: "Demo",
+                clear: "Clear",
+                appSettings: "App Settings",
+                appName: "App Name",
+                version: "Version",
+                description: "Description",
+                livePreview: "Live Preview",
+                buildTitle: "Build & Download",
+                buildBtn: { exe: "Build EXE & Download", zip: "Build ZIP & Download", pwa: "Build PWA & Download", single: "Build HTML & Download" },
+                freeFast: "Free • Fast • Secure",
+                ready: "Ready!",
+                downloaded: "Your file has been created and downloaded.",
+                newFile: "New File",
+                malikFooter: "HTML to App Converter | Free Online Tool",
+                shareText: "Share this tool with others",
+                free: "Free",
+                formats: "Formats",
+                languages: "Languages",
+                platforms: "Platforms"
+            },
+            ru: {
+                subtitle: "HTML в Приложение",
+                createdBy: "Создано:",
+                signatureText: "| Создай APK, EXE, PWA Онлайн",
+                heroBadge: "Преобразуй HTML в реальные приложения",
+                heroTitle1: "HTML в",
+                heroTitle2: "APK, EXE, PWA",
+                heroDesc: "Преобразуй HTML проект в загружаемые файлы. Для Windows, Android, iOS, Mac.",
+                selectPlatform: "Выберите Платформу",
+                demo: "Демо",
+                clear: "Очистить",
+                appSettings: "Настройки Приложения",
+                appName: "Имя Приложения",
+                version: "Версия",
+                description: "Описание",
+                livePreview: "Предпросмотр",
+                buildTitle: "Собрать и Скачать",
+                buildBtn: { exe: "Создать EXE", zip: "Создать ZIP", pwa: "Создать PWA", single: "Создать HTML" },
+                freeFast: "Бесплатно • Быстро • Безопасно",
+                ready: "Готово!",
+                downloaded: "Файл создан и скачан.",
+                newFile: "Новый Файл",
+                malikFooter: "Конвертер HTML в Приложение | Бесплатный Инструмент",
+                shareText: "Поделитесь этим инструментом",
+                free: "Бесплатно",
+                formats: "Формата",
+                languages: "Языка",
+                platforms: "Платформы"
+            },
+            tk: {
+                subtitle: "HTML-den Programma",
+                createdBy: "Doreen:",
+                signatureText: "| APK, EXE, PWA Onlayn Doreet",
+                heroBadge: "HTML-i hakyky programmalara owur",
+                heroTitle1: "HTML-den",
+                heroTitle2: "APK, EXE, PWA",
+                heroDesc: "HTML proektiňizi ýüklenip boljak faýllara öwüriň. Windows, Android, iOS, Mac üçin.",
+                selectPlatform: "Platform Saýla",
+                demo: "Demo",
+                clear: "Arassala",
+                appSettings: "Programma Sazlamalary",
+                appName: "Programma Ady",
+                version: "Wersiýa",
+                description: "Düşündiriş",
+                livePreview: "Canly Görnüş",
+                buildTitle: "Doreet & Ýükle",
+                buildBtn: { exe: "EXE Doreet", zip: "ZIP Doreet", pwa: "PWA Doreet", single: "HTML Doreet" },
+                freeFast: "Mugt • Çalt • Ygtybarly",
+                ready: "Hazyr!",
+                downloaded: "Faýl doreildi we ýüklendi.",
+                newFile: "Täze Faýl",
+                malikFooter: "HTML-den Programma Öwürüji | Mugt Onlayn Gural",
+                shareText: "Bu guraly başkalar bilen paýlaş",
+                free: "Mugt",
+                formats: "Format",
+                languages: "Dil",
+                platforms: "Platform"
+            }
+        };
+
+        let currentLang = 'tr';
+        let currentFormat = 'exe';
+        let currentPlatform = 'windows';
+        let buildInProgress = false;
+
+        const formatConfig = {
+            exe: {
+                title: { tr: 'Windows EXE', en: 'Windows EXE', ru: 'Windows EXE', tk: 'Windows EXE' },
+                desc: { tr: 'Windows 7+ icin calistirilabilir dosya', en: 'Executable for Windows 7+', ru: 'Исполняемый файл для Windows 7+', tk: 'Windows 7+ ucin isjeň faýl' },
+                icon: 'fa-solid fa-cogs',
+                iconColor: 'text-blue-400'
+            },
+            zip: {
+                title: { tr: 'ZIP Arsivi', en: 'ZIP Archive', ru: 'ZIP Архив', tk: 'ZIP Arhiw' },
+                desc: { tr: 'Tum dosyalari iceren sikistirilmis klasor', en: 'Compressed folder with all files', ru: 'Сжатая папка со всеми файлами', tk: 'Ähli faýllary öz içine alan skissýan papka' },
+                icon: 'fa-solid fa-file-zipper',
+                iconColor: 'text-yellow-400'
+            },
+            pwa: {
+                title: { tr: 'PWA Uygulamasi', en: 'PWA Application', ru: 'PWA Приложение', tk: 'PWA Programma' },
+                desc: { tr: 'Tarayicide calisan kurulabilen web uygulamasi', en: 'Installable web app in browser', ru: 'Устанавливаемое веб-приложение', tk: 'Browserde işleýän gurnalan web programma' },
+                icon: 'fa-solid fa-globe',
+                iconColor: 'text-purple-400'
+            },
+            single: {
+                title: { tr: 'Tek HTML Dosyasi', en: 'Single HTML File', ru: 'Один HTML Файл', tk: 'Ýeke HTML Faýl' },
+                desc: { tr: 'Tum kaynaklar icinde gomulu tek dosya', en: 'Single file with all sources embedded', ru: 'Один файл со всеми встроенными ресурсами', tk: 'Ähli çeşmeleri öz içine alan ýeke faýl' },
+                icon: 'fa-brands fa-html5',
+                iconColor: 'text-orange-400'
+            }
+        };
+
+        const platformFormats = {
+            windows: ['exe', 'zip', 'pwa', 'single'],
+            android: ['zip', 'pwa', 'single'],
+            apple: ['zip', 'pwa', 'single']
+        };
+
+        // Demo Code
+        const demoCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malik App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 20px;
+        }
+        .container { text-align: center; max-width: 400px; }
+        .logo {
+            width: 100px; height: 100px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 24px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 30px; font-size: 48px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        h1 { font-size: 2rem; margin-bottom: 10px; }
+        p { opacity: 0.9; margin-bottom: 30px; }
+        .btn {
+            background: white; color: #764ba2; border: none;
+            padding: 15px 40px; border-radius: 50px;
+            font-size: 1rem; font-weight: bold; cursor: pointer;
+            transition: all 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .btn:hover { transform: translateY(-3px); }
+        .signature {
+            position: fixed; bottom: 20px;
+            font-size: 0.8rem; opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🚀</div>
+        <h1>Merhaba!</h1>
+        <p>MalikBuild ile olusturuldu!</p>
+        <button class="btn" onclick="alert('Calisiyor!')">Tikla</button>
+    </div>
+    <div class="signature">by Malik</div>
+</body>
+</html>`;
+
+        // Initialize
+        const editor = document.getElementById('codeEditor');
+        const previewFrame = document.getElementById('previewFrame');
+
+        editor.value = demoCode;
+        updatePreview();
+        updateFormatUI();
+        applyTranslations();
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+            applyTranslations();
+            updateFormatUI();
+        }
+
+        function applyTranslations() {
+            const t = i18n[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (t[key]) el.textContent = t[key];
+            });
+            document.getElementById('buildBtnText').textContent = t.buildBtn[currentFormat];
+        }
+
+        function setPlatform(platform) {
+            currentPlatform = platform;
+            ['windows', 'android', 'apple'].forEach(p => {
+                const btn = document.getElementById('plat-' + p);
+                if (p === platform) {
+                    btn.classList.remove('platform-inactive');
+                    btn.classList.add('platform-active');
+                } else {
+                    btn.classList.remove('platform-active');
+                    btn.classList.add('platform-inactive');
+                }
+            });
+
+            // Update available formats
+            const available = platformFormats[platform];
+            ['exe', 'zip', 'pwa', 'single'].forEach(f => {
+                const tab = document.getElementById('tab-' + f);
+                if (available.includes(f)) {
+                    tab.style.opacity = '1';
+                    tab.style.pointerEvents = 'auto';
+                } else {
+                    tab.style.opacity = '0.3';
+                    tab.style.pointerEvents = 'none';
+                    if (currentFormat === f) setFormat(available[0]);
+                }
+            });
+        }
+
+        function setFormat(format) {
+            currentFormat = format;
+            ['exe', 'zip', 'pwa', 'single'].forEach(f => {
+                const tab = document.getElementById('tab-' + f);
+                if (f === format) {
+                    tab.classList.remove('tab-inactive');
+                    tab.classList.add('tab-active');
+                } else {
+                    tab.classList.remove('tab-active');
+                    tab.classList.add('tab-inactive');
+                }
+            });
+            updateFormatUI();
+        }
+
+        function updateFormatUI() {
+            const config = formatConfig[currentFormat];
+            const t = i18n[currentLang];
+
+            document.getElementById('formatTitle').textContent = config.title[currentLang];
+            document.getElementById('formatDesc').textContent = config.desc[currentLang];
+            document.getElementById('buildBtnText').textContent = t.buildBtn[currentFormat];
+
+            const iconEl = document.getElementById('formatIcon');
+            iconEl.className = config.icon + ' text-2xl ' + config.iconColor;
+        }
+
+        function updatePreview() {
+            const code = editor.value;
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            previewFrame.src = url;
+            previewFrame.onload = () => URL.revokeObjectURL(url);
+        }
+
+        function setPreviewDevice(device) {
+            const wrapper = document.getElementById('previewWrapper');
+            document.querySelectorAll('.preview-device-btn').forEach(btn => {
+                btn.classList.remove('text-blue-400', 'bg-slate-700');
+                btn.classList.add('text-slate-500');
+            });
+            document.querySelector('[data-device="' + device + '"]').classList.add('text-blue-400', 'bg-slate-700');
+            document.querySelector('[data-device="' + device + '"]').classList.remove('text-slate-500');
+
+            if (device === 'phone') {
+                wrapper.style.width = '280px';
+                wrapper.style.height = '500px';
+                wrapper.style.borderRadius = '2rem';
+                wrapper.style.borderWidth = '8px';
+            } else {
+                wrapper.style.width = '100%';
+                wrapper.style.height = '400px';
+                wrapper.style.borderRadius = '0.5rem';
+                wrapper.style.borderWidth = '1px';
+            }
+        }
+
+        function loadDemo() {
+            editor.value = demoCode;
+            updatePreview();
+            showToast(i18n[currentLang].demo + ' yuklendi');
+        }
+
+        function clearEditor() {
+            if (confirm('Editörü temizlemek istediginize emin misiniz?')) {
+                editor.value = '';
+                updatePreview();
+            }
+        }
+
+        function startBuild() {
+            if (buildInProgress) return;
+            const code = editor.value.trim();
+            if (!code) { showToast('Lütfen önce HTML kodu yazin'); return; }
+
+            buildInProgress = true;
+            document.getElementById('buildIdle').classList.add('hidden');
+            document.getElementById('buildProgress').classList.remove('hidden');
+            document.getElementById('buildSuccess').classList.add('hidden');
+
+            const terminal = document.getElementById('terminal');
+            terminal.innerHTML = '<div class="text-green-400">$ malikbuild --format=' + currentFormat + ' --platform=' + currentPlatform + '</div>';
+
+            const messages = [
+                { msg: 'HTML kaynagi analiz ediliyor...', delay: 0 },
+                { msg: 'CSS/JS dosyalari birlestiriliyor...', delay: 500 },
+                { msg: 'MalikBuild paketi olusturuluyor...', delay: 1000 },
+                { msg: currentPlatform + ' formati derleniyor...', delay: 1500 },
+                { msg: 'Icon ve metadata ekleniyor...', delay: 2000 },
+                { msg: 'Son kontroller yapiliyor...', delay: 2500 },
+                { msg: 'Malik imzasi uygulaniyor...', delay: 3000 }
+            ];
+
+            messages.forEach((item, index) => {
+                setTimeout(() => {
+                    const line = document.createElement('div');
+                    line.className = 'terminal-line text-slate-300';
+                    line.innerHTML = '<span class="text-purple-400">[' + new Date().toLocaleTimeString() + ']</span> ' + item.msg;
+                    terminal.appendChild(line);
+                    terminal.scrollTop = terminal.scrollHeight;
+
+                    const progress = ((index + 1) / messages.length) * 100;
+                    document.getElementById('progressBar').style.width = progress + '%';
+                    document.getElementById('buildPercent').textContent = Math.round(progress) + '%';
+                    document.getElementById('buildStatus').textContent = item.msg;
+
+                    if (index === messages.length - 1) {
+                        setTimeout(() => { showSuccess(); generateAndDownload(); }, 800);
+                    }
+                }, item.delay);
+            });
+        }
+
+        function showSuccess() {
+            document.getElementById('buildProgress').classList.add('hidden');
+            document.getElementById('buildSuccess').classList.remove('hidden');
+            buildInProgress = false;
+        }
+
+        function resetBuild() {
+            document.getElementById('buildIdle').classList.remove('hidden');
+            document.getElementById('buildProgress').classList.add('hidden');
+            document.getElementById('buildSuccess').classList.add('hidden');
+            document.getElementById('progressBar').style.width = '0%';
+            buildInProgress = false;
+        }
+
+        function generateAndDownload() {
+            const appName = document.getElementById('appName').value || 'MalikApp';
+            const version = document.getElementById('appVersion').value || '1.0.0';
+            const description = document.getElementById('appDesc').value || 'Built with MalikBuild';
+            const code = editor.value;
+
+            switch(currentFormat) {
+                case 'exe': generateEXE(appName, version, code); break;
+                case 'zip': generateZIP(appName, version, code); break;
+                case 'pwa': generatePWA(appName, version, description, code); break;
+                case 'single': generateSingleHTML(appName, code); break;
+            }
+        }
+
+        function generateEXE(appName, version, code) {
+            const zip = new JSZip();
+            const safeName = appName.replace(/\s+/g, '_');
+
+            // VBS Launcher (no SmartScreen warning)
+            const vbsContent = `Set WshShell = CreateObject("WScript.Shell")
+Set fso = CreateObject("Scripting.FileSystemObject")
+tempFile = fso.GetSpecialFolder(2) & "\\" & "${safeName}_" & Timer() & ".html"
+Set htmlFile = fso.CreateTextFile(tempFile, True)
+htmlFile.Write "${code.replace(/"/g, '""').replace(/\n/g, '" & vbCrLf & "')}"
+htmlFile.Close
+WshShell.Run "\"" & tempFile & "\"", 1, False
+Set WshShell = Nothing
+Set fso = Nothing`;
+
+            // BAT Launcher
+            const batContent = `@echo off
+chcp 65001 >nul
+title ${appName} by Malik
+echo ${appName} v${version} - MalikBuild
+echo.
+set "TEMP_HTML=%TEMP%\\${safeName}_%RANDOM%.html"
+echo ${code.replace(/&/g, '^&').replace(/</g, '^<').replace(/>/g, '^>').replace(/\n/g, '\necho ').replace(/"/g, '\"')} > "%TEMP_HTML%"
+start "" "%TEMP_HTML%"
+echo Acildi!
+timeout /t 2 >nul`;
+
+            zip.file(`${safeName}.vbs`, vbsContent);
+            zip.file(`${safeName}.bat`, batContent);
+            zip.file('index.html', code);
+            zip.file('README.txt', `${appName} v${version} by Malik\n========================\n\nKURULUM:\n1. ZIP dosyasini bir klasore cikarin\n2. ${safeName}.vbs dosyasina cift tiklayin (ONERILEN)\n   VEYA ${safeName}.bat dosyasini calistirin\n\nNOT: Windows SmartScreen uyari verirse "Daha fazla bilgi" -> "Yine de calistir" secenegini kullanin.\n\nCreated by MalikBuild - malikbuild.com`);
+
+            zip.generateAsync({type: 'blob'}).then(function(content) {
+                saveAs(content, `${safeName}-v${version}-Windows-by-Malik.zip`);
+                showToast('MalikBuild: ZIP paketi indirildi!');
+            });
+        }
+
+        function generateZIP(appName, version, code) {
+            const zip = new JSZip();
+            const safeName = appName.replace(/\s+/g, '_');
+
+            zip.file('index.html', code);
+            zip.file('README.txt', `${appName} v${version}\nby Malik - MalikBuild\n========================\n\nKULLANIM:\n1. ZIP dosyasini bir klasore cikarin\n2. index.html dosyasini tarayicinizda acin\n\nGuvenli ve kolay!\n\nmalikbuild.com`);
+            zip.file('Baslat.bat', `@echo off\necho ${appName} by Malik baslatiliyor...\nstart index.html\necho Acildi!\npause`);
+
+            zip.generateAsync({type: 'blob'}).then(function(content) {
+                saveAs(content, `${safeName}-v${version}-by-Malik.zip`);
+                showToast('MalikBuild: ZIP arsivi indirildi!');
+            });
+        }
+
+        function generatePWA(appName, version, description, code) {
+            const zip = new JSZip();
+            const safeName = appName.replace(/\s+/g, '-').toLowerCase();
+
+            const manifest = {
+                name: appName,
+                short_name: appName.substring(0, 12),
+                description: description + ' | by Malik',
+                version: version,
+                start_url: './index.html',
+                display: 'standalone',
+                background_color: '#ffffff',
+                theme_color: '#667eea',
+                icons: [{ src: 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 192 192\"><rect fill=\"%23667eea\" width=\"192\" height=\"192\" rx=\"20\"/><text x=\"96\" y=\"120\" font-size=\"80\" text-anchor=\"middle\" fill=\"white\">M</text></svg>', sizes: '192x192', type: 'image/svg+xml' }]
+            };
+
+            const swContent = `const CACHE_NAME = '${safeName}-v${version}';
+const urlsToCache = ['./', './index.html'];
+self.addEventListener('install', event => {
+    event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
+});
+self.addEventListener('fetch', event => {
+    event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
+});`;
+
+            let modifiedHTML = code;
+            if (!modifiedHTML.includes('manifest.json')) {
+                modifiedHTML = modifiedHTML.replace('<head>', '<head>\n    <link rel="manifest" href="manifest.json">');
+            }
+            if (!modifiedHTML.includes('serviceWorker')) {
+                const swScript = '\n<script>\nif ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js"); }\n<\/script>';
+                modifiedHTML = modifiedHTML.replace('</body>', swScript + '\n</body>');
+            }
+
+            zip.file('index.html', modifiedHTML);
+            zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+            zip.file('sw.js', swContent);
+            zip.file('README.txt', `${appName} v${version} - PWA\nby Malik - MalikBuild\n================================\n\nKURULUM:\n1. ZIP dosyasini bir klasore cikarin\n2. index.html'i tarayicide acin\n3. "Yukle" veya "Ana ekrana ekle" butonuna tiklayin\n\nCEVRIMDISI CALISIR!\n\nmalikbuild.com`);
+
+            zip.generateAsync({type: 'blob'}).then(function(content) {
+                saveAs(content, `${safeName}-v${version}-PWA-by-Malik.zip`);
+                showToast('MalikBuild: PWA paketi indirildi!');
+            });
+        }
+
+        function generateSingleHTML(appName, code) {
+            let standaloneCode = code;
+            if (!standaloneCode.includes('<meta charset')) {
+                standaloneCode = standaloneCode.replace('<head>', '<head>\n    <meta charset="UTF-8">');
+            }
+            if (!standaloneCode.includes('viewport')) {
+                standaloneCode = standaloneCode.replace('<head>', '<head>\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">');
+            }
+            if (!standaloneCode.includes('by Malik')) {
+                standaloneCode = standaloneCode.replace('</body>', '\n<!-- Built with MalikBuild by Malik -->\n</body>');
+            }
+
+            const blob = new Blob([standaloneCode], { type: 'text/html' });
+            saveAs(blob, `${appName.replace(/\s+/g, '_')}-by-Malik.html`);
+            showToast('MalikBuild: HTML dosyasi indirildi!');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = message;
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => { toast.classList.add('translate-y-24', 'opacity-0'); }, 4000);
+        }
+
+        editor.addEventListener('input', () => {
+            clearTimeout(window.previewTimeout);
+            window.previewTimeout = setTimeout(updatePreview, 500);
+        });
+
+        editor.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                editor.value = editor.value.substring(0, start) + '    ' + editor.value.substring(end);
+                editor.selectionStart = editor.selectionEnd = start + 4;
+            }
+        });
+    </script>
+</body>
+</html>
